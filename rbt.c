@@ -2,6 +2,7 @@
 #define RED 0
 #include <stdio.h>
 #include <stdlib.h>
+/*
 int bh = 0;
 int total = 0;
 int tr = 0;
@@ -9,6 +10,7 @@ int nb=0;
 int miss=0;
 int delete=0;
 int insert=0;
+*/
 
 typedef struct Node*NodePtr;
 struct Node
@@ -27,7 +29,6 @@ NodePtr node_alloc(int newval)
     self->p = nil;
     self->left = nil;
     self->right = nil;
-    //self->c = BLACK;
     return self;
 }
 
@@ -184,8 +185,14 @@ void rbt_transplant(RBTPtr self, NodePtr u, NodePtr v)
 }
 NodePtr tree_min(RBTPtr self, NodePtr x)
 {
-    while (x->left != self->NIL)
+    while (x->left!=self->NIL)
         x = x->left;
+    return x;
+}
+NodePtr tree_max(RBTPtr self, NodePtr x)
+{
+    while (x->right != self->NIL)
+        x = x->right;
     return x;
 }
 void rbt_delete_fixup(RBTPtr self, NodePtr n)
@@ -345,32 +352,6 @@ void push(struct node** head_ref, int new_data)
     new_node->next = (*head_ref);
     (*head_ref) = new_node;
 }
-/*
- void deleteNode(struct node **head_ref, int key)
- {
- struct node* temp = *head_ref, *prev;
- 
- if (temp != NULL && temp->data == key)
- {
- *head_ref = temp->next;
- free(temp);
- return;
- }
- 
- 
- while (temp != NULL && temp->data != key)
- {
- prev = temp;
- temp = temp->next;
- }
- 
- if (temp == NULL) return;
- 
- prev->next = temp->next;
- 
- free(temp);
- }
- */
 NodePtr rbt_search(RBTPtr self, NodePtr x, int val)
 {
     if (x == self->NIL || x->val == val)
@@ -395,15 +376,37 @@ void rbt_counter(RBTPtr self, NodePtr root) {
     }
 }
 
-
-
+NodePtr rbt_successor(RBTPtr self, NodePtr x)
+{
+    if (x->right != self->NIL)
+        return tree_min(self, x->right);
+    NodePtr y= x->p;
+    while (y!= self->NIL && x==y->right)
+    {
+        x=y;
+        y=y->p;
+    }
+    return y;
+}
+NodePtr rbt_predecessor(RBTPtr self, NodePtr x)
+{
+    if (x->left != self->NIL)
+        return tree_max(self, x->left);
+    NodePtr y= x->p;
+    while (y!= self->NIL && x==y->left)
+    {
+        x=y;
+        y=y->p;
+    }
+    return y;
+}
 int main()
 {
     nil = nil_init();
     RBTPtr rbt = rbt_alloc();
     FILE *fp;
     int num;
-    fp = fopen("/Users/SK/desktop/test01.txt", "r");
+    fp = fopen("/Users/SK/desktop/prjtest/test01.txt", "r");
     while (!feof(fp))
     {
         fscanf(fp, "%d", &num);
@@ -428,7 +431,79 @@ int main()
             break;
     }
     fclose(fp);
+    FILE *fp2;
+    fp2 = fopen("/Users/SK/desktop/prjtest/output.txt", "wb");
+    FILE *fp1;
+    int num1;
+    NodePtr search;
+    fp1 = fopen("/Users/SK/desktop/prjtest/search01.txt", "r");
+    while (!feof(fp1))
+    {
+        fscanf(fp1, "%d", &num1);
+        search=rbt_search(rbt, rbt->root, num1);
+        if (search->val == -1) {
+            rbt_insert(rbt, node_alloc(num1));
+            search=rbt_search(rbt, rbt->root, num1);
+            NodePtr a = rbt_successor(rbt, search);
+            NodePtr b = rbt_predecessor(rbt, search);
+            
+            if (b->val==-1)
+            {
+                printf("NIL  ");
+                fprintf(fp2, "NIL  ");
+            }
+            else
+            {
+                printf("%d  ", b->val);
+                fprintf(fp2, "%d  ", b->val);
+            }
+            printf("NIL  ");
+            fprintf(fp2, "NIL  ");
+            if (a->val == -1)
+            {
+                printf("NIL  \n\n");
+                fprintf(fp2, "NIL  \n\n");
+            }
+            else
+            {
+                printf("%d  \n\n", a->val);
+                fprintf(fp2, "%d  \n\n", a->val);
+            }
+            rbt_delete(rbt, search);
+        }
+        else {
+            NodePtr a = rbt_successor(rbt, search);
+            NodePtr b = rbt_predecessor(rbt, search);
+            
+            if (b->val==-1)
+            {
+                printf("NIL  ");
+                fprintf(fp2, "NIL  ");
+            }
+            else
+            {
+                printf("%d  ", b->val);
+                fprintf(fp2, "NIL  ");
+            }
+            printf("%d  ", search->val);
+            fprintf(fp2, "%d  ", search->val);
+            if (a->val == -1)
+            {
+                printf("NIL  \n\n");
+                fprintf(fp2, "NIL  \n\n");
+            }
+            else
+            {
+                printf("%d  \n\n", a->val);
+                fprintf(fp2, "%d  \n\n", a->val);
+            }
+            
+        }
+    }
+    fclose(fp1);
+    fclose(fp2);
     //rbt_print(rbt, rbt->root, 0);
+    /*
     rbt_bh(rbt, rbt->root);
     rbt_counter(rbt, rbt->root);
     printf("total = %d\n", total);
@@ -438,5 +513,6 @@ int main()
     printf("miss= %d\n", miss);
     printf("bh = %d\n", bh);
     inorder_traversal(rbt, rbt->root);
+     */
     return 0;
 }
